@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewAI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <h1>CrewAI Assistant</h1>
+    <div class="input-container">
+        <form id="inputForm" action="/" method="post">
+            <label for="user_input">Enter your research topic of choice:</label><br>
+            <textarea id="user_input" name="user_input" placeholder="Enter your question or topic here..."></textarea><br>
+            <button type="button" id="playStopButton" onclick="togglePlayStop()">Play</button>
+        </form>
+    </div>
+
+    <div id="progressArea" class="progress-area" style="display:none;">
+        <div class="progress-step">
+            <div class="step-header">
+                <span class="step-title">Crew task kicked off</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step-content"></div>
+        </div>
+    </div>
+
+    <div id="responseArea" class="response" style="display:none;"></div>
+
+    <script>
+        let isRunning = false;
+        let controller = null;
+
+        async function togglePlayStop() {
+            const button = document.getElementById('playStopButton');
+            const userInput = document.getElementById('user_input');
+            const progressArea = document.getElementById('progressArea');
+            const responseArea = document.getElementById('responseArea');
+            
+            if (!isRunning) {
+                // Reset display areas
+                responseArea.style.display = 'none';
+                responseArea.innerText = '';
+                
+                if (!userInput.value.trim()) {
+                    alert('Please enter a prompt first');
+                    return;
+                }
+                
+                isRunning = true;
+                button.textContent = 'Stop';
+                button.classList.add('running');
+                userInput.disabled = true;
+                progressArea.style.display = 'block';
+                
+                // Reset progress indicators
+                document.querySelector('.step-status').textContent = '⏳';
+                document.querySelector('.step-content').textContent = '';
+                
+                controller = new AbortController();
+                const formData = new FormData();
+                formData.append("user_input", userInput.value);
+
+                try {
+                    const response = await fetch('/run_crew', {
+                        method: 'POST',
+                        body: formData,
+                        signal: controller.signal,
+                        headers: {
+                            'Accept': 'text/event-stream'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let finalOutput = '';
+
+                    while (true) {
+                        const {value, done} = await reader.read();
+                        if (done) break;
+                        
+                        const lines = decoder.decode(value).split('\n');
+                        for (const line of lines) {
+                            if (!line) continue;
+                            const update = JSON.parse(line);
+                            
+                            switch(update.type) {
+                                case 'start':
+                                    document.querySelector('.step-content').textContent = update.message;
+                                    document.querySelector('.step-status').textContent = '⏳';
+                                    break;
+                                case 'complete':
+                                    document.querySelector('.step-status').textContent = '✅';
+                                    responseArea.style.display = 'block';
+                                    responseArea.innerHTML = marked.parse(update.message);
+                                    break;
+                                case 'error':
+                                    document.querySelector('.step-status').textContent = '❌';
+                                    responseArea.style.display = 'block';
+                                    responseArea.innerText = `Error: ${update.message}`;
+                                    break;
+                            }
+                        }
+                    }
+
+                } catch (error) {
+                    responseArea.style.display = 'block';
+                    if (error.name === 'AbortError') {
+                        responseArea.innerText = "Operation cancelled by user.";
+                    } else {
+                        console.error("There was an error:", error);
+                        responseArea.innerText = `An error occurred: ${error.message}`;
+                    }
+                } finally {
+                    // Reset UI state
+                    isRunning = false;
+                    button.textContent = 'Submit';
+                    button.classList.remove('running');
+                    userInput.disabled = false;
+                    if (!finalOutput) {
+                        progressArea.style.display = 'none';
+                    }
+                    controller = null;
+                }
+            } else {
+                if (controller) {
+                    controller.abort();
+                    progressArea.style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
