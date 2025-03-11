@@ -3,7 +3,7 @@
 An AI-powered research assistant that leverages CrewAI to generate comprehensive responses on any topic. Built with FastAPI and Google's Gemini model.
 
 ## Demo
-![Demo Video](./demo.mp4)
+<video src="./demo.mp4" controls></video>
 
 ## Features
 
