@@ -16,6 +16,20 @@ An AI-powered research assistant that leverages CrewAI to generate comprehensive
 - Google Gemini API key
 - Serper API key
 
+## Getting API Keys
+
+### Google Gemini API Key
+1. Go to the [Google AI Studio](https://aistudio.google.com/) website.  
+2. Sign in with your Google account.  
+3. Click on **Get API Key** under the Gemini API section.  
+4. Copy your API key and store it securely.  
+
+### Serper API Key
+1. Visit the [Serper API website](https://serper.dev/).  
+2. Sign up for an account if you don’t have one.  
+3. Navigate to the **API Keys** section in your dashboard.  
+4. Generate a new API key and copy it. 
+
 ## Installation
 
 1. Clone the repository:
