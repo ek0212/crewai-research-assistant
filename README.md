@@ -2,9 +2,6 @@
 
 An AI-powered research assistant that leverages CrewAI to generate comprehensive responses on any topic. Built with FastAPI and Google's Gemini model.
 
-## Demo
-<video src="./demo.mp4" controls></video>
-
 ## Features
 
 - AI-powered research and content generation
@@ -94,6 +91,16 @@ The application uses:
 - Google Gemini for language processing
 - Jinja2 for templating
 - Markdown for formatting output
+
+
+## Demo
+
+<img src="demo/1.png" style="width: 100%; max-width: 600px;"/>
+<img src="demo/2.png" style="width: 100%; max-width: 600px;"/>
+<img src="demo/3.png" style="width: 100%; max-width: 600px;"/>
+<img src="demo/4.png" style="width: 100%; max-width: 600px;"/>
+<img src="demo/5.png" style="width: 100%; max-width: 600px;"/>
+
 
 ## Contributing
 
